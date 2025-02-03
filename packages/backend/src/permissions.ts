@@ -1,4 +1,4 @@
-import { shield, rule, deny, race, chain } from 'graphql-shield';
+import { shield, rule, deny, race, and } from 'graphql-shield';
 import { Context } from './context';
 import { Permission } from '~/shared/constants';
 import { NODE_ENV } from './config';
@@ -60,26 +60,26 @@ const isSupervisor = rule({ cache: 'contextual' })(async (
 export const permissions = shield(
   {
     Query: {
-      accountDetails: chain(
+      accountDetails: and(
         hasPermission(Permission.READ_Account),
         race(isAccountAgent, isAccountCustomer, isSupervisor),
       ),
       '*': deny,
     },
     Account: {
-      '*': chain(
+      '*': and(
         race(hasPermission(Permission.READ_Account)),
         race(isAccountAgent, isAccountCustomer, isSupervisor),
       ),
     },
     UpdateAccountResult: {
-      success: chain(
+      success: and(
         hasPermission('WRITE_Account'),
         race(isAccountAgent, isSupervisor),
       ),
     },
     Mutation: {
-      updateBalance: chain(
+      updateBalance: and(
         hasPermission('WRITE_Account'),
         race(isAccountAgent, isSupervisor),
       ),
